@@ -1,6 +1,28 @@
+// IMPORTA Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
+// CONFIGURAZIONE
+const firebaseConfig = {
+  apiKey: "AIzaSyAbiGcVbznmRf0m-xPlIAtIkAQqMaCVHDk",
+  authDomain: "karaoke-live.firebaseapp.com",
+  projectId: "karaoke-live",
+  storageBucket: "karaoke-live.firebasestorage.app",
+  messagingSenderId: "268291410744",
+  appId: "1:268291410744:web:4cb66c45d586510b440fcd"
+};
+
+// INIZIALIZZA FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// REFERENZE AI DATI
+const songsRef = ref(db, 'songs');
+const reservationsRef = ref(db, 'reservations');
+const configRef = ref(db, 'config');
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () =>  {
 
 
   //implemento di firebase
@@ -61,9 +83,51 @@ document.addEventListener("DOMContentLoaded", () => {
   let branoCorrente = 0;
   let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
  
+   /*  set(songsRef, [
+       "Wonderwall - Oasis",
+       "Zombie - The Cranberries",
+       "Bohemian Rhapsody - Queen",
+       "Azzurro - Adriano Celentano"
+     ]);*/
+     
+
+  // DATI DA FIREBASE
 
 
-  
+     onValue(songsRef, snapshot => {
+      if (snapshot.exists()) {
+        canzoni = snapshot.val();
+      } else {
+        canzoni = [
+          "Wonderwall - Oasis",
+          "Zombie - The Cranberries",
+          "Bohemian Rhapsody - Queen",
+          "Azzurro - Adriano Celentano"
+        ];
+        set(songsRef, canzoni); // salva solo se vuoto
+      }
+      renderSongs();
+     });
+     
+     
+
+
+     onValue(reservationsRef, snapshot => {
+       reservations = snapshot.exists() ? snapshot.val() : {};
+       renderSongs();
+     });
+     
+     onValue(configRef, snapshot => {
+       if (snapshot.exists()) {
+         const config = snapshot.val();
+         maxPrenotazioni = config.maxPrenotazioni || 25;
+         branoCorrente = config.branoCorrente || 0;
+         annullaLimiteInput.value = config.annullaLimite || 0;
+         updateCurrentSongIndexDisplay();
+       }
+     });
+
+
 
  
 
@@ -72,10 +136,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  function save() {
-    localStorage.setItem("songs", JSON.stringify(canzoni));
-    localStorage.setItem("reservations", JSON.stringify(reservations));
-  }
+function save() {
+  set(songsRef, canzoni);
+  set(reservationsRef, reservations);
+  set(configRef, {
+    maxPrenotazioni,
+    branoCorrente,
+    annullaLimite: parseInt(annullaLimiteInput.value) || 0
+  });
+}
+
 
 
 
@@ -273,6 +343,7 @@ searchInput.addEventListener("input", renderSongs);
     const newSong = newSongInput.value.trim();
     if (newSong && !canzoni.includes(newSong)) {
       canzoni.push(newSong);
+      save();
       newSongInput.value = "";
       renderSongs();
     }
@@ -281,6 +352,7 @@ searchInput.addEventListener("input", renderSongs);
   resetBtn.addEventListener("click", () => {
     prenotazioni = [];
     branoCorrente = 0;
+    save();
     renderSongs();
     waitingSection.classList.add("hidden");
   });
@@ -335,6 +407,7 @@ searchInput.addEventListener("input", renderSongs);
     const userName = document.getElementById("userName").value.trim();
     if (!userName || !selectedSong) return;
     prenotazioni.push({ name: userName, song: selectedSong });
+    save();
     selectedSong = null;
     document.getElementById("userName").value = "";
     showWaitingSection(userName);
@@ -375,6 +448,8 @@ searchInput.addEventListener("input", renderSongs);
         if (i >= 0) {
           const songToRestore = prenotazioni[i].song;
           prenotazioni.splice(i, 1);
+          save();
+
 
           // Riposiziona la canzone nella parte "non prenotata"
           const indexToMove = canzoni.findIndex(c => c === songToRestore);
