@@ -65,49 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("reservations", JSON.stringify(reservations));
   }
 
-  /*function renderSongs() {
-    const search = searchInput.value.toLowerCase();
-    const sorted = [...songs].sort((a, b) => {
-      const [aTitle, aArtist] = a.split(" _");
-      const [bTitle, bArtist] = b.split(" _");
-      if (sortSelect.value === "title") return aTitle.localeCompare(bTitle);
-      if (sortSelect.value === "artist") return aArtist.localeCompare(bArtist);
-      return 0;
-    });
-
-    songList.innerHTML = "";
-    let count = 0;
-    for (const song of sorted) {
-      if (!song.toLowerCase().includes(search)) continue;
-      count++;
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <span>${song}</span>
-        <button class="btn" ${reservations[song] ? "disabled" : ""}>
-          ${reservations[song] ? "Prenotato" : "Prenota"}
-        </button>`;
-      const btn = li.querySelector("button");
-      if (!reservations[song]) {
-        btn.addEventListener("click", () => {
-          selectedSong = song;
-          selectedSongHeading.textContent = "Prenotazione: " + song;
-          reservationForm.classList.remove("hidden");
-        });
-      }
-      songList.appendChild(li);
-    }
-
-    if (count === 0) {
-      const li = document.createElement("li");
-      li.textContent = "Ci scusiamo, ma il brano non è presente nella scaletta.";
-      songList.appendChild(li);
-    }
-  }*/
-
-  
 
 
-  function renderSongs() {
+ /*function renderSongs() {
     songList.innerHTML = "";
     const search = searchInput.value.toLowerCase();
 
@@ -165,7 +125,92 @@ document.addEventListener("DOMContentLoaded", () => {
       li.appendChild(button);
       songList.appendChild(li);
     });
+  }*/
+
+// Search & Filter Integration
+function renderSongs() {
+  songList.innerHTML = "";
+  const search = searchInput.value.toLowerCase();
+
+  if (editorMode) {
+    infoSection.classList.add("hidden");
+    frontSign.classList.add("hidden");
+    searchBar.classList.add("hidden");
+    songSection.classList.add("hidden");
+    waitingSection.classList.add("hidden");
+    editorPanel.classList.remove("hidden");
+    renderEditorList();
+    return;
+  } else {
+    infoSection.classList.remove("hidden");
+    editorPanel.classList.add("hidden");
   }
+
+  if (prenotazioni.length >= maxPrenotazioni) {
+    songSection.classList.add("hidden");
+    frontSign.classList.add("hidden");
+    searchBar.classList.add("hidden");
+    reservationForm.classList.add("hidden");
+    maxReached.classList.remove("hidden");
+    return;
+  }
+
+  maxReached.classList.add("hidden");
+  songSection.classList.remove("hidden");
+  searchBar.classList.remove("hidden");
+  frontSign.classList.remove("hidden");
+
+  const sorted = [...canzoni].sort((a, b) => {
+    const [aTitle, aArtist] = a.split(" - ");
+    const [bTitle, bArtist] = b.split(" - ");
+    if (sortSelect.value === "title") return aTitle.localeCompare(bTitle);
+    if (sortSelect.value === "artist") return aArtist.localeCompare(bArtist);
+    return 0;
+  });
+
+  let count = 0;
+  for (const song of sorted) {
+    if (!song.toLowerCase().includes(search)) continue;
+    count++;
+    const li = document.createElement("li");
+    li.textContent = song;
+
+    const prenotato = prenotazioni.find(p => p.song === song);
+    const button = document.createElement("button");
+
+    if (prenotato) {
+      button.textContent = "Prenotato";
+      button.disabled = true;
+      button.classList.add("btn-secondary");
+    } else {
+      button.textContent = "Prenota";
+      button.classList.add("btn");
+      button.addEventListener("click", () => {
+        frontSign.classList.add("hidden");
+        searchBar.classList.add("hidden");
+        selectedSong = song;
+        selectedSongHeading.textContent = `Stai prenotando: ${song}`;
+        songSection.classList.add("hidden");
+        reservationForm.classList.remove("hidden");
+      });
+    }
+
+    li.appendChild(button);
+    songList.appendChild(li);
+  }
+
+  if (count === 0) {
+    const li = document.createElement("li");
+    li.textContent = "Ci scusiamo, ma il brano non è presente nella scaletta.";
+    songList.appendChild(li);
+  }
+}
+
+sortSelect.addEventListener("change", renderSongs);
+searchInput.addEventListener("input", renderSongs);
+
+
+
 
   function renderEditorList() {
     editableSongList.innerHTML = "";
@@ -273,17 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-    /*reservationForm.addEventListener("submit", e => {
-    e.preventDefault();
-    const name = document.getElementById("userName").value.trim();
-    if (name && selectedSong && !reservations[selectedSong]) {
-      reservations[selectedSong] = name;
-      save();
-      nameInput.value = "";
-      reservationForm.classList.add("hidden");
-      renderSongs();
-    }
-  });*/
   reservationForm.addEventListener("submit", e => {
     e.preventDefault();
     const userName = document.getElementById("userName").value.trim();
