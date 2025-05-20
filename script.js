@@ -25,8 +25,17 @@ const songsRef = ref(db, 'songs');
 const reservationsRef = ref(db, 'reservations');
 const configRef = ref(db, 'config');
 
+let maxPrenotazioni = 25;
+let prenotazioni = [];
+let canzoni = [];
+let selectedSong = null;
+let editorMode = false;
+let branoCorrente = 0;
+let currentUserName = null;
+let bloccaRender = false;
 
-document.addEventListener("DOMContentLoaded", () =>  {
+
+document.addEventListener("DOMContentLoaded", () => {
 
 
   //implemento di firebase
@@ -46,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () =>  {
   const songList = document.getElementById("songList");
   const cancelReservation = document.getElementById("cancelReservation");
   const infoSection = document.getElementById("infoSection");
-  const frontSign = document.getElementById("prenotaLaTuaCanzone")
+  const frontSign = document.getElementById("prenotaLaTuaCanzone");
   const maxReached = document.getElementById("maxReached");
 
   const waitingSection = document.getElementById("waitingSection");
@@ -68,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () =>  {
   const editorTableBody = document.querySelector("#editorTable tbody");
 
  //cost search and filter bar
-  const searchBar = document.getElementById("filterBars")
+  const searchBar = document.getElementById("filterBars");
   const searchInput = document.getElementById("searchInput");
   const sortSelect = document.getElementById("sortSelect");
 
@@ -79,13 +88,16 @@ document.addEventListener("DOMContentLoaded", () =>  {
   selectedSongHeading.id = "selectedSongHeading";
   reservationForm.prepend(selectedSongHeading);
 
-  let maxPrenotazioni = 25;
+  /*let maxPrenotazioni = 25;
   let prenotazioni = [];
   
   let canzoni = JSON.parse(localStorage.getItem("canzoni")) || ["Wonderwall - Oasis", "Zombie - The Cranberries", "Bohemian Rhapsody - Queen", "Azzurro - Adriano Celentano"];
   let selectedSong = null;
   let editorMode = false;
-  let branoCorrente = 0;
+  let branoCorrente = 0;*/
+
+
+
   //let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
  
    /*  set(songsRef, [
@@ -120,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () =>  {
     onValue(reservationsRef, snapshot => {
        prenotazioni = snapshot.exists() ? snapshot.val() : [];
        renderSongs();
+           updateWaitingMsg();
     });
 
      
@@ -140,9 +153,8 @@ onValue(reservationsRef, snapshot => {
   updateWaitingMsg();
 });
 
-     maxPrenotazioniInput.addEventListener("change", () => {
-  save();
-});
+      maxPrenotazioniInput.addEventListener("change", save);
+  annullaLimiteInput.addEventListener("change", save);
 
 
 
@@ -249,14 +261,16 @@ function renderSongs() {
     editorPanel.classList.add("hidden");
   }
 
-  if (prenotazioni.length >= maxPrenotazioni) {
-    songSection.classList.add("hidden");
-    frontSign.classList.add("hidden");
-    searchBar.classList.add("hidden");
-    reservationForm.classList.add("hidden");
-    maxReached.classList.remove("hidden");
-    return;
-  }
+if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName) {
+  const sections = document.querySelectorAll("main > section, #filterBars, #songSection, #reservationForm, #infoSection");
+  sections.forEach(el => el.classList.add("hidden"));
+
+  maxReached.classList.remove("hidden");
+  maxReached.style.transition = "opacity 0.6s ease-in";
+  maxReached.style.opacity = "1";
+  return;
+}
+
 
   maxReached.classList.add("hidden");
   songSection.classList.remove("hidden");
@@ -500,9 +514,86 @@ function showWaitingSection(userName) {
   maxReached.classList.add("hidden");
   infoSection.classList.add("hidden");
   waitingSection.classList.remove("hidden");
+  history.pushState({ waiting: true }, "", "");
+
+window.onpopstate = function(event) {
+  if (event.state && event.state.waiting) {
+    const conferma = confirm("Sei sicuro di voler uscire dalla pagina di attesa? Potresti perdere gli aggiornamentila tua prenotazione.");
+    if (!conferma) {
+      history.pushState({ waiting: true }, "", "");
+    } else {
+      location.reload();
+    }
+  }
+};
+
+window.addEventListener("beforeunload", (e) => {
+  if (waitingSection && !waitingSection.classList.contains("hidden")) {
+    e.preventDefault();
+    e.returnValue = "Stai per uscire dalla pagina. Potresti perdere la tua prenotazione.";
+  }
+});
+
+
+}
+function updateWaitingMsg() {
+  if (!currentUserName) return;
+
+  const user = prenotazioni.find(p => p.name === currentUserName);
+  const pos = prenotazioni.findIndex(p => p.name === currentUserName);
+  const diff = pos - branoCorrente;
+
+  if (!user) return;
+
+  const song = user.song;
+  waitingMsg.innerHTML = `<strong>Preparati a cantare:</strong> ${song}<br>`;
+
+  if (diff > 1) {
+    waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
+  } else if (diff === 1) {
+    waitingMsg.innerHTML += `Manca 1 brano al tuo turno. Preparati!`;
+  } else if (diff === 0) {
+    waitingMsg.innerHTML += `✨ È il tuo turno! ✨`;
+  } else {
+    waitingMsg.innerHTML += `Hai già cantato!`;
+    setTimeout(() => location.reload(), 3000);
+  }
+
+  // GESTIONE CANCELLAZIONE SLOT
+  cancelSlotBtn.disabled = false;
+  cancelSlotBtn.classList.remove("btn-disabled");
+
+  cancelSlotBtn.onclick = () => {
+    const annullaLimite = parseInt(annullaLimiteInput.value) || 0;
+
+    if (diff < annullaLimite) {
+      alert(`Non puoi annullare la prenotazione: mancano solo ${diff} brani.`);
+      return;
+    }
+
+    const conferma = confirm("Sei sicuro di voler annullare la tua prenotazione?");
+    if (!conferma) return;
+
+    const i = prenotazioni.findIndex(p => p.name === currentUserName);
+    if (i >= 0) {
+      const songToRestore = prenotazioni[i].song;
+      prenotazioni.splice(i, 1);
+      save();
+
+      // Rimetti il brano in fondo alla lista
+      const indexToMove = canzoni.findIndex(c => c === songToRestore);
+      if (indexToMove > -1) {
+        const song = canzoni.splice(indexToMove, 1)[0];
+        canzoni.push(song);
+      }
+
+      waitingSection.classList.add("hidden");
+      location.reload();
+    }
+  };
 }
 
-function updateWaitingMsg() {
+/*function updateWaitingMsg() {
   if (!currentUserName) return;
   const user = prenotazioni.find(p => p.name === currentUserName);
   const pos = prenotazioni.findIndex(p => p.name === currentUserName);
@@ -523,7 +614,7 @@ function updateWaitingMsg() {
     waitingMsg.innerHTML += `Hai già cantato!`;
     setTimeout(() => location.reload(), 3000);
   }
-}
+}*/
 
   /*function showWaitingSection(userName) {
     frontSign.classList.add("hidden");
