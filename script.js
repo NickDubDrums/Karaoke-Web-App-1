@@ -84,10 +84,10 @@ document.addEventListener("DOMContentLoaded", () => {
         button.textContent = "Prenota";
         button.classList.add("btn");
         button.addEventListener("click", () => {
+          frontSign.classList.add("hidden");
           selectedSong = song;
           selectedSongHeading.textContent = `Stai prenotando: ${song}`;
           songSection.classList.add("hidden");
-          frontSign.classList.add("hidden");
           reservationForm.classList.remove("hidden");
 
         });
