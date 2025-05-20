@@ -87,7 +87,9 @@ document.addEventListener("DOMContentLoaded", () => {
           selectedSong = song;
           selectedSongHeading.textContent = `Stai prenotando: ${song}`;
           songSection.classList.add("hidden");
+          frontSign.classList.add("hidden");
           reservationForm.classList.remove("hidden");
+
         });
       }
 
@@ -279,9 +281,24 @@ document.addEventListener("DOMContentLoaded", () => {
       editorMode = true;
       alert("Modalità editor attivata");
       sideMenu.classList.remove("visible");
+      editorPanel.classList.remove("hidden");
+      songSection.classList.add("hidden");
+      infoSection.classList.add("hidden");
       renderSongs();
     } else {
       alert("Password errata");
+    }
+  });
+
+    document.querySelector("header h1").addEventListener("click", () => {
+    location.reload();
+  });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+    const conferma = confirm("Sei sicuro di voler resettare tutte le prenotazioni?");
+    if (conferma) {
+      alert("Prenotazioni resettate.");
+      location.editorMode(); // ricarica semplice come placeholder
     }
   });
 
