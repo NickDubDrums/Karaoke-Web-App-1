@@ -1,3 +1,6 @@
+
+//script.js
+
 // IMPORTA Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
@@ -121,15 +124,21 @@ document.addEventListener("DOMContentLoaded", () =>  {
 
      
      onValue(configRef, snapshot => {
-       if (snapshot.exists()) {
-         const config = snapshot.val();
-         maxPrenotazioni = config.maxPrenotazioni || 25;
-         branoCorrente = config.branoCorrente || 0;
-         annullaLimiteInput.value = config.annullaLimite || 0;
-         maxPrenotazioniInput.value = maxPrenotazioni;
-         updateCurrentSongIndexDisplay();
-       }
-     });
+  if (snapshot.exists()) {
+    const config = snapshot.val();
+    maxPrenotazioni = config.maxPrenotazioni || 25;
+    branoCorrente = config.branoCorrente || 0;
+    annullaLimiteInput.value = config.annullaLimite || 0;
+    maxPrenotazioniInput.value = maxPrenotazioni;
+    updateCurrentSongIndexDisplay();
+    updateWaitingMsg();
+  }
+});
+onValue(reservationsRef, snapshot => {
+  prenotazioni = snapshot.exists() ? snapshot.val() : [];
+  renderSongs();
+  updateWaitingMsg();
+});
 
      maxPrenotazioniInput.addEventListener("change", () => {
   save();
@@ -325,6 +334,44 @@ searchInput.addEventListener("input", renderSongs);
   }
 
   function renderEditorTable() {
+  editorTableBody.innerHTML = "";
+  canzoni.forEach((song, index) => {
+    const row = document.createElement('tr');
+
+    const indexCell = document.createElement("td");
+    indexCell.textContent = index + 1;
+
+    const songCell = document.createElement("td");
+    songCell.textContent = song;
+
+    const userCell = document.createElement("td");
+    const user = prenotazioni.find(p => p.song === song);
+    userCell.textContent = user ? user.name : "";
+
+    const removeCell = document.createElement("td");
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "X";
+    removeBtn.classList.add("btn", "btn-secondary");
+    removeBtn.style.padding = "2px 8px";
+    removeBtn.addEventListener("click", () => {
+      if (confirm(`Rimuovere "${song}" dalla scaletta?`)) {
+        canzoni.splice(index, 1);
+        save();
+        renderSongs();
+      }
+    });
+    removeCell.appendChild(removeBtn);
+
+    row.appendChild(indexCell);
+    row.appendChild(songCell);
+    row.appendChild(userCell);
+    row.appendChild(removeCell);
+
+    editorTableBody.appendChild(row);
+  });
+}
+
+  /*function renderEditorTable() {
     editorTableBody.innerHTML = "";
     canzoni.forEach((song, index) => {
       
@@ -349,7 +396,7 @@ searchInput.addEventListener("input", renderSongs);
 
       editorTableBody.appendChild(row);
     });
-  }
+  }*/
 
   addSongBtn.addEventListener("click", () => {
     const newSong = newSongInput.value.trim();
@@ -361,13 +408,17 @@ searchInput.addEventListener("input", renderSongs);
     }
   });
 
-  resetBtn.addEventListener("click", () => {
+resetBtn.addEventListener("click", () => {
+  const conferma = confirm("Sei sicuro di voler resettare tutte le prenotazioni?");
+  if (conferma) {
     prenotazioni = [];
     branoCorrente = 0;
     save();
     renderSongs();
     waitingSection.classList.add("hidden");
-  });
+    alert("Prenotazioni resettate.");
+  }
+});
 
   downloadCSVBtn.addEventListener("click", () => {
     const rows = [["Nome", "Brano"]];
@@ -421,6 +472,11 @@ searchInput.addEventListener("input", renderSongs);
     e.preventDefault();
     const userName = document.getElementById("userName").value.trim();
     if (!userName || !selectedSong) return;
+
+    if (prenotazioni.length >= maxPrenotazioni) {
+    alert("Limite massimo di prenotazioni raggiunto!");
+    return;
+  }
     prenotazioni.push({ name: userName, song: selectedSong });
     save();
     selectedSong = null;
@@ -433,7 +489,43 @@ searchInput.addEventListener("input", renderSongs);
     location.reload();
   });
 
-  function showWaitingSection(userName) {
+  let currentUserName = null;
+function showWaitingSection(userName) {
+  currentUserName = userName;
+  updateWaitingMsg();
+  frontSign.classList.add("hidden");
+  searchBar.classList.add("hidden");
+  reservationForm.classList.add("hidden");
+  songSection.classList.add("hidden");
+  maxReached.classList.add("hidden");
+  infoSection.classList.add("hidden");
+  waitingSection.classList.remove("hidden");
+}
+
+function updateWaitingMsg() {
+  if (!currentUserName) return;
+  const user = prenotazioni.find(p => p.name === currentUserName);
+  const pos = prenotazioni.findIndex(p => p.name === currentUserName);
+  const diff = pos - branoCorrente;
+
+  if (!user) return;
+
+  const song = user.song;
+  waitingMsg.innerHTML = `<strong>Preparati a cantare:</strong> ${song}<br>`;
+
+  if (diff > 1) {
+    waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
+  } else if (diff === 1) {
+    waitingMsg.innerHTML += `Manca 1 brano al tuo turno. Preparati!`;
+  } else if (diff === 0) {
+    waitingMsg.innerHTML += `✨ È il tuo turno! ✨`;
+  } else {
+    waitingMsg.innerHTML += `Hai già cantato!`;
+    setTimeout(() => location.reload(), 3000);
+  }
+}
+
+  /*function showWaitingSection(userName) {
     frontSign.classList.add("hidden");
     searchBar.classList.add("hidden")
     reservationForm.classList.add("hidden");
@@ -484,7 +576,7 @@ searchInput.addEventListener("input", renderSongs);
       cancelSlotBtn.classList.add("btn-disabled");
       cancelSlotBtn.onclick = null;
     }
-  }
+  }*/
 
   
   annullaLimiteInput.addEventListener("change", () => {
@@ -520,13 +612,13 @@ searchInput.addEventListener("input", renderSongs);
     location.reload();
   });
 
-    document.getElementById("resetBtn").addEventListener("click", () => {
+    /*document.getElementById("resetBtn").addEventListener("click", () => {
     const conferma = confirm("Sei sicuro di voler resettare tutte le prenotazioni?");
     if (conferma) {
       alert("Prenotazioni resettate.");
       location.editorMode(); // ricarica semplice come placeholder
     }
-  });
+  });*/
 
   renderSongs();
   
