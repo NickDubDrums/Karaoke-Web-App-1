@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () =>  {
   const nextSongBtn = document.getElementById("nextSongBtn");
   const prevSongBtn = document.getElementById("prevSongBtn");
   const annullaLimiteInput = document.getElementById("annullaLimite");
+  const maxPrenotazioniInput = document.getElementById("maxPrenotazioniInput");
   const editorTableBody = document.querySelector("#editorTable tbody");
 
  //cost search and filter bar
@@ -82,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () =>  {
   let selectedSong = null;
   let editorMode = false;
   let branoCorrente = 0;
-  let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
+  //let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
  
    /*  set(songsRef, [
        "Wonderwall - Oasis",
@@ -113,10 +114,11 @@ document.addEventListener("DOMContentLoaded", () =>  {
      
 
 
-     onValue(reservationsRef, snapshot => {
-       reservations = snapshot.exists() ? snapshot.val() : {};
+    onValue(reservationsRef, snapshot => {
+       prenotazioni = snapshot.exists() ? snapshot.val() : [];
        renderSongs();
-     });
+    });
+
      
      onValue(configRef, snapshot => {
        if (snapshot.exists()) {
@@ -124,9 +126,15 @@ document.addEventListener("DOMContentLoaded", () =>  {
          maxPrenotazioni = config.maxPrenotazioni || 25;
          branoCorrente = config.branoCorrente || 0;
          annullaLimiteInput.value = config.annullaLimite || 0;
+         maxPrenotazioniInput.value = maxPrenotazioni;
          updateCurrentSongIndexDisplay();
        }
      });
+
+     maxPrenotazioniInput.addEventListener("change", () => {
+  save();
+});
+
 
 
 
@@ -138,13 +146,16 @@ document.addEventListener("DOMContentLoaded", () =>  {
 
 
 function save() {
+    const annullaLimite = parseInt(annullaLimiteInput.value) || 0;
+    maxPrenotazioni = parseInt(maxPrenotazioniInput.value) || 25;
   set(songsRef, canzoni);
-  set(reservationsRef, reservations);
+  set(reservationsRef, prenotazioni);
   set(configRef, {
-    maxPrenotazioni,
-    branoCorrente,
-    annullaLimite: parseInt(annullaLimiteInput.value) || 0
-  });
+  maxPrenotazioni,
+  branoCorrente,
+  annullaLimite
+});
+  
 }
 
 
@@ -386,11 +397,13 @@ searchInput.addEventListener("input", renderSongs);
 
   nextSongBtn.addEventListener("click", () => {
     branoCorrente++;
+    save();
     renderSongs();
   });
 
   prevSongBtn.addEventListener("click", () => {
     if (branoCorrente > 0) branoCorrente--;
+    save();
     renderSongs();
   });
 
@@ -398,6 +411,7 @@ searchInput.addEventListener("input", renderSongs);
     const val = parseInt(currentSongInput.value);
     if (!isNaN(val) && val >= 0) {
       branoCorrente = val;
+      save();
       renderSongs();
     }
   });
@@ -440,6 +454,8 @@ searchInput.addEventListener("input", renderSongs);
       waitingMsg.textContent = "È il tuo turno!";
     }
 
+  
+
     const limite = parseInt(annullaLimiteInput.value) || 0;
     if (diff >= limite) {
       cancelSlotBtn.disabled = false;
@@ -469,6 +485,13 @@ searchInput.addEventListener("input", renderSongs);
       cancelSlotBtn.onclick = null;
     }
   }
+
+  
+  annullaLimiteInput.addEventListener("change", () => {
+      save(); // ogni volta che l’input cambia, salva la nuova config
+    });
+
+    
 
   menuToggle.addEventListener("click", () => {
     sideMenu.classList.add("visible");
