@@ -76,6 +76,10 @@ h3 {
 }
 
 .close-btn {
+    background: none;
+  border: none;
+  font-size: 2rem;
+  color: white;
   position: absolute;
   top: 10px;
   right: 15px;
@@ -89,10 +93,27 @@ h3 {
 main {
   padding: 1rem;
 }
+.controls {
+  display: flex;
+  gap: 10px;
+  padding: 1rem;
+}
+
+
+#searchInput {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+#sortSelect {
+  padding: 0.5rem;
+  border-radius: 8px;
+}
 
 .song-list {
   list-style: none;
-  padding: 0;
+  padding: 0 1rem;
 }
 
 .song-list li {
@@ -236,3 +257,5 @@ main {
 body .song-list .btn {
   background: #db4d81;
 }
+
+

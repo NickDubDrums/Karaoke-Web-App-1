@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Karaoke con I Ragazzi</title>
   <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+    
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
@@ -23,6 +25,15 @@
 
   <main>
     <h3 id="prenotaLaTuaCanzone">Prenota la tua canzone</h3>
+
+
+    <div id="filterBars" class="controls">
+      <input type="text" id="searchInput" placeholder="Cerca brano..." />
+      <select id="sortSelect">
+        <option value="title">Ordina per titolo</option>
+        <option value="artist">Ordina per artista</option>
+      </select>
+    </div>
 
     <section id="maxReached" class="hidden">
       <h2>Numero massimo di prenotazioni raggiunto!</h2>
@@ -119,6 +130,6 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+
 </body>
 </html>
