@@ -1,4 +1,12 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
+
+
+  //implemento di firebase
+
+  
+  
 
 
 
@@ -46,12 +54,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let maxPrenotazioni = 25;
   let prenotazioni = [];
-  let canzoni = ["Wonderwall - Oasis", "Zombie - The Cranberries", "Bohemian Rhapsody - Queen", "Azzurro - Adriano Celentano"];
+  
+  let canzoni = JSON.parse(localStorage.getItem("canzoni")) || ["Wonderwall - Oasis", "Zombie - The Cranberries", "Bohemian Rhapsody - Queen", "Azzurro - Adriano Celentano"];
   let selectedSong = null;
   let editorMode = false;
   let branoCorrente = 0;
   let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
  
+
+
+  
 
  
 
@@ -61,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function save() {
-    localStorage.setItem("songs", JSON.stringify(songs));
+    localStorage.setItem("songs", JSON.stringify(canzoni));
     localStorage.setItem("reservations", JSON.stringify(reservations));
   }
 
@@ -418,4 +430,5 @@ searchInput.addEventListener("input", renderSongs);
   });
 
   renderSongs();
+  
 });
