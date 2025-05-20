@@ -6,6 +6,7 @@ import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic
 const firebaseConfig = {
   apiKey: "AIzaSyAbiGcVbznmRf0m-xPlIAtIkAQqMaCVHDk",
   authDomain: "karaoke-live.firebaseapp.com",
+  databaseURL: "https://karaoke-live-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "karaoke-live",
   storageBucket: "karaoke-live.firebasestorage.app",
   messagingSenderId: "268291410744",
