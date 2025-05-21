@@ -10,7 +10,7 @@ body {
 }
 
 #reservationForm .btn-secondary {
-  background-color: #949494;
+  background-color: #6c757d;
 }
 
 #reservationForm input{
@@ -343,4 +343,12 @@ body .main-prenota {
 .main-prenota label{
   font-weight: bolder;
   font-size: 30px;
+}
+
+.main-prenota .btn{
+  background: #db4d81;
+}
+
+.main-prenota .btn-secondary {
+  background: #6c757d;
 }
