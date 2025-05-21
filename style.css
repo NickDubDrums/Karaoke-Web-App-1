@@ -402,6 +402,11 @@ body .main-prenota {
   background-color: #e0e0e0;
 }
 
+.maxCenter {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
 
 img {
   max-width: 20%;
