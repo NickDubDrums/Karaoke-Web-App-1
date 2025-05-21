@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   //const cancelReservation = document.getElementById("cancelReservation");
   const infoSection = document.getElementById("infoSection");
   const frontSign = document.getElementById("prenotaLaTuaCanzone");
-  const maxReached = document.getElementById("maxReached");
+  //const maxReached = document.getElementById("maxReached");
 
   const waitingSection = document.getElementById("waitingSection");
   const waitingMsg = document.getElementById("waitingMsg");
@@ -191,17 +191,13 @@ function renderSongs() {
   }
 
 if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName) {
-  const sections = document.querySelectorAll("main > section, #filterBars, #songSection, #reservationForm, #infoSection");
-  sections.forEach(el => el.classList.add("hidden"));
-
-  maxReached.classList.remove("hidden");
-  maxReached.style.transition = "opacity 0.6s ease-in";
-  maxReached.style.opacity = "1";
+  window.location.href = "max.html";
   return;
 }
 
 
-  maxReached.classList.add("hidden");
+
+  //maxReached.classList.add("hidden");
   songSection.classList.remove("hidden");
   searchBar.classList.remove("hidden");
   frontSign.classList.remove("hidden");
@@ -411,7 +407,7 @@ function showWaitingSection(userName) {
   searchBar.classList.add("hidden");
  // reservationForm.classList.add("hidden");
   songSection.classList.add("hidden");
-  maxReached.classList.add("hidden");
+  //maxReached.classList.add("hidden");
   infoSection.classList.add("hidden");
   waitingSection.classList.remove("hidden");
   history.pushState({ waiting: true }, "", "");
