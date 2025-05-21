@@ -44,16 +44,20 @@ function updateStatus() {
   }
 
   const diff = index - currentIndex;
-  waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
+  
   if (diff > 1) {
+    waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
   } else if (diff === 1) {
-    waitingMsg.innerHTML += "Manca 1 brano al tuo turno. PREPARATI!";
+    waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
+    waitingMsg.innerHTML += "Manca 1 brano al tuo turno. <strong></strong>";
   } else if (diff === 0) {
+    waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "🎤✨ È il tuo turno! ✨";
 } else {
-  let seconds = 4;
-  waitingMsg.innerHTML += `Hai già cantato.<br><em>Verrai reindirizzato alla pagina iniziale tra <span id="countdown">${seconds}</span> secondi...</em>`;
+  waitingMsg.innerHTML = "<strong>Complimenti sei stato un talento a cantare:</strong> " + user.song + "<br>";
+  let seconds = 3;
+  waitingMsg.innerHTML += `<strong></strong><br><em>Adesso verrai reindirizzato alla pagina iniziale tra <span id="countdown">${seconds}</span> secondi...</em>`;
 
   const countdownSpan = document.getElementById("countdown");
   const countdownInterval = setInterval(() => {

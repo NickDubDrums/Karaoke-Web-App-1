@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //const reservationForm = document.getElementById("reservationForm");
   const songSection = document.getElementById("songSection");
-  const songList = document.getElementById("songList");
+  
   //const cancelReservation = document.getElementById("cancelReservation");
   const infoSection = document.getElementById("infoSection");
   const frontSign = document.getElementById("prenotaLaTuaCanzone");
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const waitingMsg = document.getElementById("waitingMsg");
   const cancelSlotBtn = document.getElementById("cancelSlotBtn");
 
-  const editorPanel = document.getElementById("editorPanel");
+ 
   const newSongInput = document.getElementById("newSongInput");
   const addSongBtn = document.getElementById("addSongBtn");
   const editableSongList = document.getElementById("editableSongList");
@@ -107,8 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
  //cost search and filter bar
   const searchBar = document.getElementById("filterBars");
-  const searchInput = document.getElementById("searchInput");
-  const sortSelect = document.getElementById("sortSelect");
+
 
 
 
@@ -144,7 +143,6 @@ if (isEditor && !sessionStorage.getItem("editorAuthenticated")) {
         ];
         set(songsRef, canzoni); // salva solo se vuoto
       }
-      renderSongs();
      });
      
      
@@ -152,7 +150,7 @@ if (isEditor && !sessionStorage.getItem("editorAuthenticated")) {
 
     onValue(reservationsRef, snapshot => {
        prenotazioni = snapshot.exists() ? snapshot.val() : [];
-       renderSongs();
+
            updateWaitingMsg();
     });
 
@@ -189,98 +187,21 @@ onValue(reservationsRef, (snapshot) => {
 
 
 function save() {
-    const annullaLimite = parseInt(annullaLimiteInput.value) || 0;
-    maxPrenotazioni = parseInt(maxPrenotazioniInput.value) || 25;
-  set(songsRef, canzoni);
-  set(reservationsRef, prenotazioni);
-  set(configRef, {
-  maxPrenotazioni,
-  branoCorrente,
-  annullaLimite
-});
-  
-}
-
-
-
-
-
-// Search & Filter Integration
-function renderSongs() {
-  songList.innerHTML = "";
-  const search = searchInput.value.toLowerCase();
-
-  if (editorMode) {
-    infoSection.classList.add("hidden");
-    frontSign.classList.add("hidden");
-    searchBar.classList.add("hidden");
-    songSection.classList.add("hidden");
-    waitingSection.classList.add("hidden");
-    editorPanel.classList.remove("hidden");
-    renderEditorList();
-    return;
-  } else {
-    infoSection.classList.remove("hidden");
-    editorPanel.classList.add("hidden");
-  }
-
-if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName && !isEditor) {
-  window.location.href = "max.html";
-  return;
-}
-
-
-
-  //maxReached.classList.add("hidden");
-  songSection.classList.remove("hidden");
-  searchBar.classList.remove("hidden");
-  frontSign.classList.remove("hidden");
-
-  const sorted = [...canzoni].sort((a, b) => {
-    const [aTitle, aArtist] = a.split(" - ");
-    const [bTitle, bArtist] = b.split(" - ");
-    if (sortSelect.value === "title") return aTitle.localeCompare(bTitle);
-    if (sortSelect.value === "artist") return aArtist.localeCompare(bArtist);
-    return 0;
+  const annullaLimite = parseInt(annullaLimiteInput.value) || 0;
+  maxPrenotazioni = parseInt(maxPrenotazioniInput.value) || 25;
+  set(ref(db, "songs"), canzoni);
+  set(ref(db, "reservations"), prenotazioni);
+  set(ref(db, "config"), {
+    maxPrenotazioni,
+    branoCorrente,
+    annullaLimite
   });
-
-  let count = 0;
-  for (const song of sorted) {
-    if (!song.toLowerCase().includes(search)) continue;
-    count++;
-    const li = document.createElement("li");
-    li.textContent = song;
-
-    const prenotato = prenotazioni.find(p => p.song === song);
-    const button = document.createElement("button");
-
-    if (prenotato) {
-      button.textContent = "Prenotato";
-      button.disabled = true;
-      button.classList.add("btn-secondary");
-    } else {
-      button.textContent = "Prenota";
-      button.classList.add("btn");
-      button.addEventListener("click", () => {
-  localStorage.setItem("selectedSong", song);
-  window.location.href = "prenota.html";
-});
-
-    }
-
-    li.appendChild(button);
-    songList.appendChild(li);
-  }
-
-  if (count === 0) {
-    const li = document.createElement("li");
-    li.textContent = "Ci scusiamo, ma il brano non è presente nella scaletta.";
-    songList.appendChild(li);
-  }
 }
 
-/*sortSelect.addEventListener("change", renderSongs);
-searchInput.addEventListener("input", renderSongs);*/
+
+
+
+
 
 
 
@@ -303,7 +224,7 @@ searchInput.addEventListener("input", renderSongs);*/
     updateCurrentSongIndexDisplay();
   }
 
-  function renderEditorTable() {
+function renderEditorTable() {
   editorTableBody.innerHTML = "";
   canzoni.forEach((song, index) => {
     const row = document.createElement('tr');
@@ -327,7 +248,7 @@ searchInput.addEventListener("input", renderSongs);*/
       if (confirm(`Rimuovere "${song}" dalla scaletta?`)) {
         canzoni.splice(index, 1);
         save();
-        renderSongs();
+        renderEditorList();
       }
     });
     removeCell.appendChild(removeBtn);
@@ -348,7 +269,6 @@ searchInput.addEventListener("input", renderSongs);*/
       canzoni.push(newSong);
       save();
       newSongInput.value = "";
-      renderSongs();
     }
   });
 
@@ -358,7 +278,6 @@ resetBtn.addEventListener("click", () => {
     prenotazioni = [];
     branoCorrente = 0;
     save();
-    renderSongs();
     waitingSection.classList.add("hidden");
     alert("Prenotazioni resettate.");
   }
@@ -386,20 +305,17 @@ resetBtn.addEventListener("click", () => {
         return raw.replace(/^\d+\.\s*/, ""); // rimuove index numerico
       });
       canzoni = updated;
-      renderSongs();
     }
   });
 
   nextSongBtn.addEventListener("click", () => {
     branoCorrente++;
     save();
-    renderSongs();
   });
 
   prevSongBtn.addEventListener("click", () => {
     if (branoCorrente > 0) branoCorrente--;
     save();
-    renderSongs();
   });
 
   currentSongInput.addEventListener("change", () => {
@@ -407,7 +323,6 @@ resetBtn.addEventListener("click", () => {
     if (!isNaN(val) && val >= 0) {
       branoCorrente = val;
       save();
-      renderSongs();
     }
   });
 
@@ -509,22 +424,4 @@ function updateWaitingMsg() {
   annullaLimiteInput.addEventListener("change", () => {
       save(); // ogni volta che l’input cambia, salva la nuova config
     });
-
-    
-
-
-
-
-
-  loginEditor.addEventListener("click", () => {
-  window.location.href = "index.html?editor=true";
-  });
-  
- 
-
-  
-  document.body.style.visibility = "visible";
-
-  renderSongs();
-  
 });

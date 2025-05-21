@@ -47,7 +47,7 @@ if (!song) {
 }
 
 
-document.getElementById("songTitle").textContent = "Ti stai prenotando per " + song;
+document.getElementById("songTitle").textContent = " " + song;
 
 document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -59,7 +59,7 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   const reservations = snapshot.exists() ? snapshot.val() : [];
 
   if (reservations.find(r => r.name === name)) {
-    alert("Hai già prenotato!");
+    alert("Qualcuno ha già prenotato con questo nome!");
     return;
   }
 
