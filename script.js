@@ -20,6 +20,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+let maxPrenotazioniDaDb = 25;
+let prenotazioniDaDb = [];
+const isEditor = window.location.href.includes("editor=true");
+
+// Prima controlla subito se superato il limite
+Promise.all([
+  get(ref(db, "config")),
+  get(ref(db, "reservations"))
+]).then(([configSnap, reservationsSnap]) => {
+  if (configSnap.exists()) {
+    maxPrenotazioniDaDb = configSnap.val().maxPrenotazioni || 25;
+  }
+
+  if (reservationsSnap.exists()) {
+    prenotazioniDaDb = reservationsSnap.val();
+  }
+
+  // Se è superato e non è editor → redirect
+  if (prenotazioniDaDb.length >= maxPrenotazioniDaDb && !isEditor) {
+    window.location.href = "max.html";
+  }
+  // ✅ SOLO se NON è stato fatto il redirect:
+  document.body.style.visibility = "visible";  
+});
+
 // REFERENZE AI DATI
 const songsRef = ref(db, 'songs');
 const reservationsRef = ref(db, 'reservations');

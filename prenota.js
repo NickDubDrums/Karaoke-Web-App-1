@@ -14,6 +14,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+const isEditor = window.location.href.includes("editor=true");
+
+Promise.all([
+  get(ref(db, "config")),
+  get(ref(db, "reservations"))
+]).then(([configSnap, reservationsSnap]) => {
+  const config = configSnap.exists() ? configSnap.val() : {};
+  const reservations = reservationsSnap.exists() ? reservationsSnap.val() : [];
+  const maxPrenotazioni = config.maxPrenotazioni || 25;
+
+  if (reservations.length >= maxPrenotazioni && !isEditor) {
+    window.location.href = "max.html";
+  }
+});
+
+
+
 const song = localStorage.getItem("selectedSong");
 
 if (!song) {

@@ -50,7 +50,7 @@ function updateStatus() {
   } else if (diff === 1) {
     waitingMsg.innerHTML += "Manca 1 brano al tuo turno. PREPARATI!";
   } else if (diff === 0) {
-    waitingMsg.innerHTML += "✨ È il tuo turno! ✨";
+    waitingMsg.innerHTML += "🎤✨ È il tuo turno! ✨";
 } else {
   let seconds = 4;
   waitingMsg.innerHTML += `Hai già cantato.<br><em>Verrai reindirizzato alla pagina iniziale tra <span id="countdown">${seconds}</span> secondi...</em>`;
