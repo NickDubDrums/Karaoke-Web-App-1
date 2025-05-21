@@ -14,6 +14,22 @@
     
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
+
+
+<script>
+  // Controllo se già autenticato nella sessione
+  if (!sessionStorage.getItem("editorAuthenticated")) {
+    const pwd = prompt("Password editor:");
+    if (pwd !== "nchia123") {
+      alert("Accesso negato.");
+      window.location.href = "index.html";
+    } else {
+      sessionStorage.setItem("editorAuthenticated", "true");
+    }
+  }
+</script>
+
+
 <body style="visibility: hidden;">
    <header>
      <div class="centerLogo" > <a href="index.html"><img src="img/scrittalogo.PNG" alt="logo I Ragazzi" id="logoEdit"></a>   </div>  
@@ -80,6 +96,9 @@
  <div>
 <h3>Scaletta Editabile</h3>
       <ul id="editableSongList" class="song-list editor"></ul>
+      <table id="editorTable">
+  <tbody></tbody>
+</table>
       
  </div>     
  </section>     

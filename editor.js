@@ -131,19 +131,10 @@ if (isEditor && !sessionStorage.getItem("editorAuthenticated")) {
   // DATI DA FIREBASE
 
 
-     onValue(songsRef, snapshot => {
-      if (snapshot.exists()) {
-        canzoni = snapshot.val();
-      } else {
-        canzoni = [
-          "Wonderwall - Oasis",
-          "Zombie - The Cranberries",
-          "Bohemian Rhapsody - Queen",
-          "Azzurro - Adriano Celentano"
-        ];
-        set(songsRef, canzoni); // salva solo se vuoto
-      }
-     });
+onValue(songsRef, (snapshot) => {
+  canzoni = snapshot.exists() ? snapshot.val() : [];
+  renderEditorList();
+});
      
      
 
