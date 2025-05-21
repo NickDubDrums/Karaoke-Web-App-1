@@ -23,6 +23,8 @@ const configRef = ref(db, "config");
 
 let reservations = [];
 let currentIndex = 0;
+let annullaLimite = 0;
+
 
 onValue(resRef, (snapshot) => {
   reservations = snapshot.exists() ? snapshot.val() : [];
@@ -32,6 +34,7 @@ onValue(resRef, (snapshot) => {
 onValue(configRef, (snapshot) => {
   const config = snapshot.val();
   currentIndex = config?.branoCorrente || 0;
+  annullaLimite = config?.annullaLimite || 0; // ✅ AGGIUNTO
   updateStatus();
 });
 
@@ -45,13 +48,13 @@ function updateStatus() {
 
   const diff = index - currentIndex;
   
-  if (diff > 1) {
+  if (diff > 2) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
-  } else if (diff === 1) {
+  } else if (diff === 1 || currentIndex === 0) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "Manca 1 brano al tuo turno. <strong></strong>";
-  } else if (diff === 0) {
+  } else if (diff === 0 && currentIndex !== 0) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "🎤✨ È il tuo turno! ✨";
 } else {
@@ -75,8 +78,16 @@ function updateStatus() {
 }
 
 cancelBtn.onclick = () => {
-  if (!confirm("Vuoi annullare la prenotazione?")) return;
   const index = reservations.findIndex(r => r.name === userName);
+  const diff = index - currentIndex;
+
+  if (diff < annullaLimite) {
+    alert(`Non puoi annullare la prenotazione: mancano solo ${diff} brani.`);
+    return;
+  }
+
+  if (!confirm("Vuoi annullare la prenotazione?")) return;
+
   if (index !== -1) {
     reservations.splice(index, 1);
     set(resRef, reservations);

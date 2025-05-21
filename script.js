@@ -19,7 +19,7 @@ const firebaseConfig = {
 // INIZIALIZZA FIREBASE
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const isEditor = window.location.href.includes("editor=true");
+//const isEditor = window.location.href.includes("editor=true");
 
 let maxPrenotazioniDaDb = 25;
 let prenotazioniDaDb = [];
@@ -119,15 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
  
 
 
-if (isEditor && !sessionStorage.getItem("editorAuthenticated")) {
-  const pwd = prompt("Password editor:");
-  if (pwd !== "1") {
-    alert("Accesso negato.");
-    window.location.href = "index.html";
-    return;
-  }
-  sessionStorage.setItem("editorAuthenticated", "true");
-}
 
   // DATI DA FIREBASE
 

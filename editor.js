@@ -19,7 +19,7 @@ const firebaseConfig = {
 // INIZIALIZZA FIREBASE
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const isEditor = window.location.href.includes("editor=true");
+//const isEditor = window.location.href.includes("editor=true");
 
 let maxPrenotazioniDaDb = 25;
 let prenotazioniDaDb = [];
@@ -115,15 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
 
 
-if (isEditor && !sessionStorage.getItem("editorAuthenticated")) {
-  const pwd = prompt("Password editor:");
-  if (pwd !== "1") {
-    alert("Accesso negato.");
-    window.location.href = "index.html";
-    return;
-  }
-  sessionStorage.setItem("editorAuthenticated", "true");
-}
+
 
   // DATI DA FIREBASE
 
@@ -136,11 +128,11 @@ onValue(songsRef, (snapshot) => {
      
 
 
-    onValue(reservationsRef, snapshot => {
-       prenotazioni = snapshot.exists() ? snapshot.val() : [];
-
-           updateWaitingMsg();
-    });
+onValue(reservationsRef, snapshot => {
+  prenotazioni = snapshot.exists() ? snapshot.val() : [];
+  renderEditorList();   // ✅ Aggiungi questa riga per aggiornare l'ordine
+  updateWaitingMsg();
+});
 
      
      onValue(configRef, snapshot => {
@@ -195,7 +187,9 @@ function save() {
     // Ordina le canzoni: prenotate prima, non prenotate dopo
     const prenotate = prenotazioni.map(p => p.song);
     const nonPrenotate = canzoni.filter(song => !prenotate.includes(song));
-    canzoni = prenotate.concat(nonPrenotate).filter((v, i, a) => a.indexOf(v) === i);
+    //canzoni = prenotate.concat(nonPrenotate).filter((v, i, a) => a.indexOf(v) === i);
+    canzoni = [...new Set(prenotate.concat(nonPrenotate))];
+
 
     canzoni.forEach((song, index) => {
       const li = document.createElement("li");
@@ -280,16 +274,18 @@ resetBtn.addEventListener("click", () => {
     
   });
 
-  new Sortable(editableSongList, {
-    animation: 150,
-    onEnd: () => {
-      const updated = Array.from(editableSongList.children).map(li => {
-        const raw = li.textContent.trim();
-        return raw.replace(/^\d+\.\s*/, ""); // rimuove index numerico
-      });
-      canzoni = updated;
-    }
-  });
+new Sortable(editableSongList, {
+  animation: 150,
+  onEnd: () => {
+    const updated = Array.from(editableSongList.children).map(li => {
+      const raw = li.textContent.trim();
+      return raw.replace(/^\d+\.\s*/, ""); // Rimuove l’indice numerico
+    });
+    canzoni = updated;
+    save();                    // Salva sul database
+    renderEditorList();        // 🔁 Rendi subito visibile l’aggiornamento
+  }
+});
 
   nextSongBtn.addEventListener("click", () => {
     branoCorrente++;
