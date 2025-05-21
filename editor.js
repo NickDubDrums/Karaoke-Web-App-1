@@ -157,12 +157,7 @@ onValue(songsRef, (snapshot) => {
     updateWaitingMsg();
   }
 });
-onValue(reservationsRef, (snapshot) => {
-  const data = snapshot.exists() ? snapshot.val() : [];
-  if (data.length >= maxPrenotazioni && !isEditor) {
-    window.location.href = "max.html";
-  }
-});
+
 
       maxPrenotazioniInput.addEventListener("change", save);
   annullaLimiteInput.addEventListener("change", save);
