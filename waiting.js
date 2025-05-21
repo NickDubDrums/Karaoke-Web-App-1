@@ -46,15 +46,15 @@ function updateStatus() {
     return;
   }
 
-  const diff = index - currentIndex;
+const diff = index - (currentIndex - 1);
   
-  if (diff > 2) {
+  if (diff > 1) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
-  } else if (diff === 1 || currentIndex === 0) {
+  } else if (diff === 1) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "Manca 1 brano al tuo turno. <strong></strong>";
-  } else if (diff === 0 && currentIndex !== 0) {
+  } else if (diff === 0) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "🎤✨ È il tuo turno! ✨";
 } else {
