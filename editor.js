@@ -39,10 +39,7 @@ Promise.all([
     prenotazioniDaDb = reservationsSnap.val();
   }
 
-  // Se è superato e non è editor → redirect
-  if (prenotazioniDaDb.length >= maxPrenotazioniDaDb && !isEditor) {
-    window.location.href = "max.html";
-  }
+
   // ✅ SOLO se NON è stato fatto il redirect:
   document.body.style.visibility = "visible";  
 });
