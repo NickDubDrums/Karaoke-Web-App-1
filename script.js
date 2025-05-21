@@ -24,6 +24,16 @@ let maxPrenotazioniDaDb = 25;
 let prenotazioniDaDb = [];
 const isEditor = window.location.href.includes("editor=true");
 
+if (isEditor) {
+  editorMode = true;
+  editorPanel.classList.remove("hidden");
+  songSection.classList.add("hidden");
+  infoSection.classList.add("hidden");
+  searchBar.classList.add("hidden");
+  
+}
+
+
 // Prima controlla subito se superato il limite
 Promise.all([
   get(ref(db, "config")),
@@ -119,7 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
  
-  
+  const isEditor = window.location.href.includes("editor=true");
+
 
   // DATI DA FIREBASE
 
@@ -215,7 +226,7 @@ function renderSongs() {
     editorPanel.classList.add("hidden");
   }
 
-if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName) {
+if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName && !isEditor) {
   window.location.href = "max.html";
   return;
 }
@@ -614,10 +625,20 @@ function updateWaitingMsg() {
       editorPanel.classList.remove("hidden");
       songSection.classList.add("hidden");
       infoSection.classList.add("hidden");
+      searchBar.classList.add("hidden");
       renderSongs();
     } else {
       alert("Password errata");
     }
+
+    if (isEditor) {
+  editorPanel.classList.remove("hidden");
+  songSection.classList.add("hidden");
+  infoSection.classList.add("hidden");
+}
+
+
+
   });
 
     document.querySelector("header h1").addEventListener("click", () => {

@@ -16,15 +16,23 @@ const db = getDatabase(app);
 
 const isEditor = window.location.href.includes("editor=true");
 
-Promise.all([
-  get(ref(db, "config")),
-  get(ref(db, "reservations"))
-]).then(([configSnap, reservationsSnap]) => {
-  const config = configSnap.exists() ? configSnap.val() : {};
-  const reservations = reservationsSnap.exists() ? reservationsSnap.val() : [];
-  const maxPrenotazioni = config.maxPrenotazioni || 25;
+import { onValue } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
 
-  if (reservations.length >= maxPrenotazioni && !isEditor) {
+const configRef = ref(db, "config");
+const reservationsRef = ref(db, "reservations");
+
+let maxPrenotazioni = 25;
+
+onValue(configRef, (snapshot) => {
+  if (snapshot.exists()) {
+    const config = snapshot.val();
+    maxPrenotazioni = config.maxPrenotazioni || 25;
+  }
+});
+
+onValue(reservationsRef, (snapshot) => {
+  const data = snapshot.exists() ? snapshot.val() : [];
+  if (data.length >= maxPrenotazioni && !isEditor) {
     window.location.href = "max.html";
   }
 });
