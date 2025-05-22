@@ -77,15 +77,19 @@ bookingForm.addEventListener("submit", async (e) => {
   }
 
   reservations.push({ name, song });
+
+  
   await set(reservationsRef, reservations);
-  await remove(lockedRef);
+await remove(lockedRef);
 
-  localStorage.setItem("userName", name);
-  window.location.href = "waiting.html";
+localStorage.setItem("userName", name);
 
-  setTimeout(() => {
+// Delay di 5 secondi prima del redirect a waiting
+setTimeout(() => {
   window.location.href = "waiting.html";
-}, 1000); 
+}, 0);
+
+
 
 });
 
@@ -102,16 +106,27 @@ cancelBtn?.addEventListener("click", () => {
   });
 });
 
+
 function checkMaxPrenotazioniLive() {
-  if (!editorMode && !isEditor) {
-    onValue(reservationsRef, (snapshot) => {
-      const data = snapshot.exists() ? snapshot.val() : [];
-      if (data.length >= maxPrenotazioni) {
-        window.location.href = "max.html";
+  const unsubscribe = onValue(reservationsRef, (snapshot) => {
+    const data = snapshot.exists() ? snapshot.val() : [];
+    if (data.length >= maxPrenotazioni) {
+      // ⚠️ Se è già stato prenotato da questo utente, NON reindirizzare
+      const currentUserName = localStorage.getItem("userName");
+      const alreadyThere = data.find(r => r.name === currentUserName);
+      if (!alreadyThere && !window.location.href.includes("editor=true")) {
+        setTimeout(() => {
+          window.location.href = "max.html";
+        }, 500);
+        
+      } else {
+        unsubscribe(); // 🛑 Disattiva il listener dopo la prenotazione
       }
-    });
-  }
+    }
+  });
 }
+
+
 onValue(configRef, (snapshot) => {
   if (snapshot.exists()) {
     const config = snapshot.val();
@@ -119,12 +134,7 @@ onValue(configRef, (snapshot) => {
   }
 });
 
-onValue(reservationsRef, (snapshot) => {
-  const data = snapshot.exists() ? snapshot.val() : [];
-  if (data.length >= maxPrenotazioni && !window.location.href.includes("editor=true")) {
-    window.location.href = "max.html";
-  }
-});
+
 
 checkMaxPrenotazioniLive();
 

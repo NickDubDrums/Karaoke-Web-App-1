@@ -167,14 +167,17 @@ function checkMaxPrenotazioniLive() {
     onValue(reservationsRef, (snapshot) => {
       const data = snapshot.exists() ? snapshot.val() : [];
       if (data.length >= maxPrenotazioni) {
-        console.log("Limite raggiunto: reindirizzo...");
-        window.location.href = "max.html";
+        if (!window.location.href.includes("max.html")) {
+          window.location.href = "max.html";
+        }
       }
     });
   }
-  
 }
+
+
 checkMaxPrenotazioniLive();
+
 
 
 

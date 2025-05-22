@@ -31,54 +31,53 @@
     </main>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAbiGcVbznmRf0m-xPlIAtIkAQqMaCVHDk",
-      authDomain: "karaoke-live.firebaseapp.com",
-      databaseURL: "https://karaoke-live-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "karaoke-live",
-      storageBucket: "karaoke-live.appspot.com",
-      messagingSenderId: "268291410744",
-      appId: "1:268291410744:web:4cb66c45d586510b440fcd"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAbiGcVbznmRf0m-xPlIAtIkAQqMaCVHDk",
+    authDomain: "karaoke-live.firebaseapp.com",
+    databaseURL: "https://karaoke-live-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "karaoke-live",
+    storageBucket: "karaoke-live.appspot.com",
+    messagingSenderId: "268291410744",
+    appId: "1:268291410744:web:4cb66c45d586510b440fcd"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    const configRef = ref(db, "config");
-    const reservationsRef = ref(db, "reservations");
+  const configRef = ref(db, "config");
+  const reservationsRef = ref(db, "reservations");
 
-    let maxPrenotazioni = 25;
-    let lastRedirect = false;
+  let maxPrenotazioni = 25;
+  let previousMax = null;
 
-    onValue(configRef, (snapshot) => {
+  // Salva il valore iniziale
+  onValue(configRef, (snapshot) => {
+    if (snapshot.exists()) {
       const config = snapshot.val();
-      if (config && config.maxPrenotazioni) {
-        maxPrenotazioni = config.maxPrenotazioni;
-        checkLimit();
-      }
-    });
-
-    onValue(reservationsRef, (snapshot) => {
-      checkLimit(snapshot.val() || []);
-    });
-
-    function checkLimit(reservations = []) {
-      if (reservations.length < maxPrenotazioni) {
-        if (!lastRedirect) {
-          lastRedirect = true;
-          document.getElementById("maxReached").innerHTML += "<p><em>✨ Posti disponibili: reindirizzamento...</em></p>";
-          setTimeout(() => {
-            window.location.href = "index.html";
-          }, 1500); // Ritardo utile per evitare loop visivi
+      if (config?.maxPrenotazioni) {
+        if (previousMax === null) {
+          previousMax = config.maxPrenotazioni;
         }
-      } else {
-        lastRedirect = false;
+        maxPrenotazioni = config.maxPrenotazioni;
       }
     }
-  </script>
+  });
+
+  // Reindirizza solo se maxPrenotazioni è cambiato e ora ci sono slot liberi
+  onValue(reservationsRef, (snapshot) => {
+    const reservations = snapshot.val() || [];
+    if (reservations.length < maxPrenotazioni && maxPrenotazioni > previousMax) {
+      document.getElementById("maxReached").innerHTML += "<p><em><strong>Sono stati messi a disposizione altri posti! Reindirizzamento...</strong></em></p>";
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 3000);
+    }
+  });
+</script>
+
 </body>
 </html>
