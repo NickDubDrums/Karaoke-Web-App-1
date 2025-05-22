@@ -21,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const lockedSongsRef = ref(db, "lockedSongs");
 let lockedSongs = {};
-//const isEditor = window.location.href.includes("editor=true");
+const isEditor = window.location.href.includes("editor=true");
 
 let maxPrenotazioniDaDb = 25;
 let prenotazioniDaDb = [];
@@ -161,12 +161,22 @@ document.addEventListener("DOMContentLoaded", () => {
     updateWaitingMsg();
   }
 });
-onValue(reservationsRef, (snapshot) => {
-  const data = snapshot.exists() ? snapshot.val() : [];
-  if (data.length >= maxPrenotazioni && !isEditor) {
-    window.location.href = "max.html";
+
+function checkMaxPrenotazioniLive() {
+  if (!editorMode && !isEditor) {
+    onValue(reservationsRef, (snapshot) => {
+      const data = snapshot.exists() ? snapshot.val() : [];
+      if (data.length >= maxPrenotazioni) {
+        console.log("Limite raggiunto: reindirizzo...");
+        window.location.href = "max.html";
+      }
+    });
   }
-});
+  
+}
+checkMaxPrenotazioniLive();
+
+
 
 onValue(lockedSongsRef, (snapshot) => {
   lockedSongs = snapshot.exists() ? snapshot.val() : {};
@@ -522,11 +532,18 @@ function updateWaitingMsg() {
   window.location.href = "index.html?editor=true";
   });
   
+  
  
 
   
   document.body.style.visibility = "visible";
 
   renderSongs();
+
+  
+checkMaxPrenotazioniLive();
+
+
+  
   
 });

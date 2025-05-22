@@ -41,41 +41,60 @@ onValue(configRef, (snapshot) => {
 function updateStatus() {
   const index = reservations.findIndex(r => r.name === userName);
   const user = reservations.find(r => r.name === userName);
+
+  // 🔴 Caso 1: Prenotazione non trovata
   if (!user) {
-    waitingMsg.textContent = "Prenotazione non trovata.";
+    waitingMsg.innerHTML = "Prenotazione non trovata.<br><em>Verrai reindirizzato alla pagina iniziale tra <span id='countdown'>3</span> secondi...</em>";
+
+    let seconds = 3;
+    const countdownSpan = document.getElementById("countdown");
+
+    const countdown = setInterval(() => {
+      seconds--;
+      countdownSpan.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(countdown);
+        localStorage.removeItem("userName");
+        localStorage.removeItem("songToBook");
+        window.location.href = "index.html";
+      }
+    }, 1000);
+
     return;
   }
 
-const diff = index - (currentIndex - 1);
-  
+  // ✅ Caso 2: Prenotazione valida
+  const diff = index - currentIndex;
+
   if (diff > 1) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += `Mancano ${diff} brani al tuo turno.`;
   } else if (diff === 1) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
-    waitingMsg.innerHTML += "Manca 1 brano al tuo turno. <strong></strong>";
+    waitingMsg.innerHTML += "Manca 1 brano al tuo turno.";
   } else if (diff === 0) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
     waitingMsg.innerHTML += "🎤✨ È il tuo turno! ✨";
-} else {
-  waitingMsg.innerHTML = "<strong>Complimenti sei stato un talento a cantare:</strong> " + user.song + "<br>";
-  let seconds = 3;
-  waitingMsg.innerHTML += `<strong></strong><br><em>Adesso verrai reindirizzato alla pagina iniziale tra <span id="countdown">${seconds}</span> secondi...</em>`;
+  } else {
+    // ✅ Caso 3: Hai già cantato
+    waitingMsg.innerHTML = "<strong>Complimenti sei stato un talento a cantare:</strong> " + user.song + "<br>";
+    let seconds = 3;
+    waitingMsg.innerHTML += `<em>Adesso verrai reindirizzato alla pagina iniziale tra <span id="countdown">${seconds}</span> secondi...</em>`;
 
-  const countdownSpan = document.getElementById("countdown");
-  const countdownInterval = setInterval(() => {
-    seconds--;
-    countdownSpan.textContent = seconds;
-    if (seconds === 0) {
-      clearInterval(countdownInterval);
-      localStorage.removeItem("userName");
-      localStorage.removeItem("songToBook");  
-      window.location.href = "index.html";
-    }
-  }, 1000);
+    const countdownSpan = document.getElementById("countdown");
+    const countdownInterval = setInterval(() => {
+      seconds--;
+      countdownSpan.textContent = seconds;
+      if (seconds === 0) {
+        clearInterval(countdownInterval);
+        localStorage.removeItem("userName");
+        localStorage.removeItem("songToBook");  
+        window.location.href = "index.html";
+      }
+    }, 1000);
+  }
 }
 
-}
 
 cancelBtn.onclick = () => {
   const index = reservations.findIndex(r => r.name === userName);

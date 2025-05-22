@@ -82,6 +82,11 @@ bookingForm.addEventListener("submit", async (e) => {
 
   localStorage.setItem("userName", name);
   window.location.href = "waiting.html";
+
+  setTimeout(() => {
+  window.location.href = "waiting.html";
+}, 1000); 
+
 });
 
 // Sblocco automatico su chiusura pagina
@@ -96,3 +101,30 @@ cancelBtn?.addEventListener("click", () => {
     window.location.href = "index.html";
   });
 });
+
+function checkMaxPrenotazioniLive() {
+  if (!editorMode && !isEditor) {
+    onValue(reservationsRef, (snapshot) => {
+      const data = snapshot.exists() ? snapshot.val() : [];
+      if (data.length >= maxPrenotazioni) {
+        window.location.href = "max.html";
+      }
+    });
+  }
+}
+onValue(configRef, (snapshot) => {
+  if (snapshot.exists()) {
+    const config = snapshot.val();
+    maxPrenotazioni = config.maxPrenotazioni || 25;
+  }
+});
+
+onValue(reservationsRef, (snapshot) => {
+  const data = snapshot.exists() ? snapshot.val() : [];
+  if (data.length >= maxPrenotazioni && !window.location.href.includes("editor=true")) {
+    window.location.href = "max.html";
+  }
+});
+
+checkMaxPrenotazioniLive();
+
