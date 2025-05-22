@@ -19,6 +19,8 @@ const firebaseConfig = {
 // INIZIALIZZA FIREBASE
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const lockedSongsRef = ref(db, "lockedSongs");
+let lockedSongs = {};
 //const isEditor = window.location.href.includes("editor=true");
 
 let maxPrenotazioniDaDb = 25;
@@ -166,6 +168,12 @@ onValue(reservationsRef, (snapshot) => {
   }
 });
 
+onValue(lockedSongsRef, (snapshot) => {
+  lockedSongs = snapshot.exists() ? snapshot.val() : {};
+  renderSongs(); // aggiorna i bottoni
+});
+
+
       maxPrenotazioniInput.addEventListener("change", save);
   annullaLimiteInput.addEventListener("change", save);
 
@@ -189,6 +197,8 @@ function save() {
   branoCorrente,
   annullaLimite
 });
+
+set(ref(db), "lock123");
   
 }
 
@@ -215,14 +225,11 @@ function renderSongs() {
     editorPanel.classList.add("hidden");
   }
 
-if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName && !isEditor) {
-  window.location.href = "max.html";
-  return;
-}
+  if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName && !isEditor) {
+    window.location.href = "max.html";
+    return;
+  }
 
-
-
-  //maxReached.classList.add("hidden");
   songSection.classList.remove("hidden");
   searchBar.classList.remove("hidden");
   frontSign.classList.remove("hidden");
@@ -243,20 +250,23 @@ if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName &&
     li.textContent = song;
 
     const prenotato = prenotazioni.find(p => p.song === song);
+    const isLocked = lockedSongs && lockedSongs[song];
     const button = document.createElement("button");
 
-    if (prenotato) {
-      button.textContent = "Prenotato";
+    if (prenotato || isLocked) {
+      button.textContent = prenotato ? "Prenotato" : "In attesa...";
       button.disabled = true;
       button.classList.add("btn-secondary");
     } else {
       button.textContent = "Prenota";
       button.classList.add("btn");
       button.addEventListener("click", () => {
-  localStorage.setItem("selectedSong", song);
-  window.location.href = "prenota.html";
-});
-
+        // Blocca il brano in Firebase
+        set(ref(db, "lockedSongs/" + song), true).then(() => {
+          localStorage.setItem("selectedSong", song);
+          window.location.href = "prenota.html";
+        });
+      });
     }
 
     li.appendChild(button);
@@ -270,8 +280,9 @@ if (prenotazioni.length >= maxPrenotazioni && !editorMode && !currentUserName &&
   }
 }
 
-/*sortSelect.addEventListener("change", renderSongs);
-searchInput.addEventListener("input", renderSongs);*/
+
+sortSelect.addEventListener("change", renderSongs);
+searchInput.addEventListener("input", renderSongs);
 
 
 

@@ -5,6 +5,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
 
+
+
 // CONFIGURAZIONE
 const firebaseConfig = {
   apiKey: "AIzaSyAbiGcVbznmRf0m-xPlIAtIkAQqMaCVHDk",
@@ -171,6 +173,7 @@ function save() {
     branoCorrente,
     annullaLimite
   });
+  
 }
 
 
