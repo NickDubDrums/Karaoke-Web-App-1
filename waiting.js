@@ -64,7 +64,8 @@ function updateStatus() {
   }
 
   // ✅ Caso 2: Prenotazione valida
-  const diff = index - currentIndex;
+  const diff = index - (currentIndex - 1);
+
 
   if (diff > 1) {
     waitingMsg.innerHTML = "<strong>Preparati a cantare:</strong> " + user.song + "<br>";
